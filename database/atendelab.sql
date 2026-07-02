@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 28/06/2026 às 17:20
+-- Tempo de geração: 02/07/2026 às 02:48
 -- Versão do servidor: 10.4.32-MariaDB
 -- Versão do PHP: 8.2.12
 
@@ -32,14 +32,27 @@ CREATE TABLE `atendimentos` (
   `pessoa_id` int(11) NOT NULL,
   `tipo_atendimento_id` int(11) NOT NULL,
   `usuario_id` int(11) NOT NULL,
-  `descricao` text NOT NULL,
-  `status` enum('aberto','em_andamento','concluido') DEFAULT 'aberto',
-  `data_atendimento` date NOT NULL,
+  `descricao` text DEFAULT NULL,
+  `status` enum('aberto','em_andamento','concluído') DEFAULT 'aberto',
+  `data_atendimento` date NOT NULL DEFAULT current_timestamp(),
   `horario_atendimento` time NOT NULL,
-  `observacao_final` text DEFAULT NULL,
+  `observacao_final` text NOT NULL,
   `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
-  `atualizado_em` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `atualizado_em` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Despejando dados para a tabela `atendimentos`
+--
+
+INSERT INTO `atendimentos` (`id`, `pessoa_id`, `tipo_atendimento_id`, `usuario_id`, `descricao`, `status`, `data_atendimento`, `horario_atendimento`, `observacao_final`, `criado_em`, `atualizado_em`) VALUES
+(1, 1, 1, 1, 'O aluno compareceu à coordenação com dúvidas sobre quebra de pré-requisitos para cursar Fábrica de Software.', 'aberto', '2026-06-25', '14:30:00', '', '2026-07-01 22:48:28', '2026-07-01 22:48:28'),
+(2, 2, 2, 1, 'Solicitação de monitoria para a estrutura MVC simples em PHP. Aluna relatou dificuldades no entendimento de rotas.', 'aberto', '2026-06-29', '15:15:00', '', '2026-07-01 22:48:28', '2026-07-01 22:48:28'),
+(3, 3, 3, 1, 'Estudante informou instabilidade na conexão ao tentar commitar as alterações locais no GitHub através do laboratório 104.', 'concluído', '2026-06-29', '16:00:00', 'a', '2026-07-01 22:48:28', '2026-07-01 22:48:28'),
+(4, 3, 2, 1, 'Apoio pedagógico.', 'em_andamento', '2026-06-16', '18:00:00', '', '2026-07-01 22:48:28', '2026-07-01 22:48:28'),
+(5, 3, 2, 1, 'a', 'aberto', '2026-07-02', '21:19:00', '', '2026-07-02 00:18:44', '2026-07-02 00:18:44'),
+(6, 3, 2, 1, 'aa', 'em_andamento', '2026-07-17', '16:28:00', '', '2026-07-02 00:28:14', '2026-07-02 00:28:14'),
+(7, 2, 4, 1, 'aa', 'aberto', '2026-07-09', '16:29:00', '', '2026-07-02 00:30:06', '2026-07-02 00:30:06');
 
 -- --------------------------------------------------------
 
@@ -49,25 +62,28 @@ CREATE TABLE `atendimentos` (
 
 CREATE TABLE `pessoas` (
   `id` int(11) NOT NULL,
-  `nome` varchar(150) NOT NULL,
-  `documento` varchar(30) NOT NULL,
-  `telefone` varchar(20) DEFAULT NULL,
+  `nome` varchar(100) NOT NULL,
+  `documento` varchar(20) DEFAULT NULL,
+  `telefone` varchar(50) DEFAULT NULL,
   `email` varchar(150) NOT NULL,
-  `curso` varchar(120) DEFAULT NULL,
-  `periodo` varchar(20) DEFAULT NULL,
-  `observacoes` text DEFAULT NULL,
-  `status` enum('ativo','inativo') DEFAULT 'ativo',
+  `curso` varchar(120) NOT NULL,
+  `periodo` varchar(20) NOT NULL,
+  `observacoes` text NOT NULL,
+  `status` varchar(10) DEFAULT 'ativo',
   `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
   `atualizado_em` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Despejando dados para a tabela `pessoas`
 --
 
 INSERT INTO `pessoas` (`id`, `nome`, `documento`, `telefone`, `email`, `curso`, `periodo`, `observacoes`, `status`, `criado_em`, `atualizado_em`) VALUES
-(1, 'João da Silva', '123.456.789-00', '(47) 99999-0001', 'joao.silva@exemplo.com', 'Engenharia de Software', '5º', NULL, 'ativo', '2026-06-28 15:19:26', '2026-06-28 15:19:26'),
-(2, 'Ana Carolina', '987.654.321-00', '(47) 99999-0002', 'ana.carolina@univille.br', 'Sistemas de Informação', '7º', NULL, 'ativo', '2026-06-28 15:19:26', '2026-06-28 15:19:26');
+(1, 'Lucas Silva Costa', '111.222.333-44', '(47) 99988-1122', 'lucas.costa@univille.br', 'Engenharia de Software', '5', 'Bolsista integral', 'inativo', '2026-06-29 20:09:51', '2026-07-02 00:19:53'),
+(2, 'Mariana Oliveira Souza', '222.333.444-55', '(47) 99122-3344', 'mariana.souza@univille.br', 'Odontologia', '7', 'Tempo integral', 'ativo', '2026-06-29 20:09:51', '2026-07-01 22:44:44'),
+(3, 'Carlos Eduardo Santos', '333.444.555-66', '(47) 98877-6655', 'carlos.santos@gmail.com', 'Direito', '3', '', 'ativo', '2026-06-29 20:09:51', '2026-07-01 22:45:00'),
+(4, 'Ana Julia Pereira', '444.555.666-77', '(47) 99233-4455', 'ana.pereira@univille.br', 'Biomedicina', '4', '', 'inativo', '2026-06-29 20:09:51', '2026-07-01 22:45:13'),
+(6, 'Mariana Oliveira Souza', '222.333.444-55', '(47) 99122-3344', 'mariana.souza@univille.br', 'Design', '2', 'Bolsista integral', 'ativo', '2026-06-29 20:10:02', '2026-07-01 22:45:51');
 
 -- --------------------------------------------------------
 
@@ -81,19 +97,19 @@ CREATE TABLE `tipos_atendimentos` (
   `descricao` text DEFAULT NULL,
   `status` enum('ativo','inativo') DEFAULT 'ativo',
   `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
-  `atualizado_em` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `atualizado_em` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Despejando dados para a tabela `tipos_atendimentos`
 --
 
 INSERT INTO `tipos_atendimentos` (`id`, `nome`, `descricao`, `status`, `criado_em`, `atualizado_em`) VALUES
-(1, 'Dúvida acadêmica', 'Dúvidas sobre disciplinas, conteúdos e atividades.', 'ativo', '2026-06-28 15:19:26', '2026-06-28 15:19:26'),
-(2, 'Orientação de atividade', 'Orientações sobre trabalhos, TCC e projetos.', 'ativo', '2026-06-28 15:19:26', '2026-06-28 15:19:26'),
-(3, 'Suporte técnico', 'Problemas com sistemas, equipamentos e acessos.', 'ativo', '2026-06-28 15:19:26', '2026-06-28 15:19:26'),
-(4, 'Matrícula e documentação', 'Solicitações de matrícula, declarações e históricos.', 'ativo', '2026-06-28 15:19:26', '2026-06-28 15:19:26'),
-(5, 'Acesso ao laboratório', 'Liberação de uso e agendamento dos laboratórios.', 'ativo', '2026-06-28 15:19:26', '2026-06-28 15:19:26');
+(1, 'Orientação Acadêmica', 'Ajustes de matrícula, análise de grade horária e validação de disciplinas.', 'ativo', '2026-07-01 22:40:28', '2026-07-01 22:40:28'),
+(2, 'Apoio Pedagógico', 'Monitorias de programação, algoritmos e suporte a dúvidas de aulas práticas.', 'ativo', '2026-07-01 22:40:28', '2026-07-01 22:40:28'),
+(3, 'Suporte Técnico', 'Problemas com o login do SmartClient, VS Code ou laboratórios da Fábrica.', 'ativo', '2026-07-01 22:40:28', '2026-07-01 22:40:28'),
+(4, 'Secretaria', 'Emissão de atestados, requerimentos e protocolos gerais.', 'ativo', '2026-07-01 22:40:28', '2026-07-01 22:40:28'),
+(5, 'Reserva de Laboratório', 'Agendamentos expirados ou salas inativas temporariamente.', 'inativo', '2026-07-01 22:40:28', '2026-07-01 22:40:28');
 
 -- --------------------------------------------------------
 
@@ -106,18 +122,18 @@ CREATE TABLE `usuarios` (
   `nome` varchar(100) NOT NULL,
   `email` varchar(100) NOT NULL,
   `senha` varchar(255) NOT NULL,
-  `perfil` enum('admin','atendente') DEFAULT 'atendente',
+  `perfil` enum('admin','aluno','atendente') DEFAULT 'atendente',
   `status` enum('ativo','inativo') DEFAULT 'ativo',
   `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
   `atualizado_em` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Despejando dados para a tabela `usuarios`
 --
 
 INSERT INTO `usuarios` (`id`, `nome`, `email`, `senha`, `perfil`, `status`, `criado_em`, `atualizado_em`) VALUES
-(1, 'Administrador', 'admin@atendelab.com', '$2y$10$J9P2kU2BAM23TZcuxTsW4e1D/lka8EocYHzvyoOZmCNcWDQz3RuVC', 'admin', 'ativo', '2026-06-28 15:19:26', '2026-06-28 15:19:26');
+(1, 'Administrador Teste', 'admin@atendelab.com', '$2y$10$3NiVAmjzlGB.EF0LEEw9qOaCLUQCyGD1SIuW8MaEwlqCniVC3i5DW', 'admin', 'ativo', '2026-06-29 19:34:20', '2026-06-29 22:03:46');
 
 --
 -- Índices para tabelas despejadas
@@ -128,16 +144,15 @@ INSERT INTO `usuarios` (`id`, `nome`, `email`, `senha`, `perfil`, `status`, `cri
 --
 ALTER TABLE `atendimentos`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_atendimentos_pessoa` (`pessoa_id`),
-  ADD KEY `fk_atendimentos_tipo` (`tipo_atendimento_id`),
-  ADD KEY `fk_atendimentos_usuario` (`usuario_id`);
+  ADD KEY `fk_atendimentos_pessoas` (`pessoa_id`),
+  ADD KEY `fk_atendimentos_usuarios` (`usuario_id`),
+  ADD KEY `fk_atendimentos_tipos` (`tipo_atendimento_id`);
 
 --
 -- Índices de tabela `pessoas`
 --
 ALTER TABLE `pessoas`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `documento` (`documento`);
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Índices de tabela `tipos_atendimentos`
@@ -160,19 +175,19 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de tabela `atendimentos`
 --
 ALTER TABLE `atendimentos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT de tabela `pessoas`
 --
 ALTER TABLE `pessoas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de tabela `tipos_atendimentos`
 --
 ALTER TABLE `tipos_atendimentos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT de tabela `usuarios`
@@ -188,9 +203,9 @@ ALTER TABLE `usuarios`
 -- Restrições para tabelas `atendimentos`
 --
 ALTER TABLE `atendimentos`
-  ADD CONSTRAINT `fk_atendimentos_pessoa` FOREIGN KEY (`pessoa_id`) REFERENCES `pessoas` (`id`),
-  ADD CONSTRAINT `fk_atendimentos_tipo` FOREIGN KEY (`tipo_atendimento_id`) REFERENCES `tipos_atendimentos` (`id`),
-  ADD CONSTRAINT `fk_atendimentos_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`);
+  ADD CONSTRAINT `fk_atendimentos_pessoas` FOREIGN KEY (`pessoa_id`) REFERENCES `pessoas` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_atendimentos_tipos` FOREIGN KEY (`tipo_atendimento_id`) REFERENCES `tipos_atendimentos` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_atendimentos_usuarios` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
