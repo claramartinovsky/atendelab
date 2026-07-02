@@ -172,7 +172,7 @@ async function carregarAtendimentos() {
             const data        = labelRegistro(a, 'data_atendimento', 'data');
 
             const classeStatus =
-                a.status === 'concluido'    ? 'text-bg-success' :
+                a.status === 'concluído'    ? 'text-bg-success' :
                 a.status === 'em_andamento' ? 'text-bg-warning'  : 'text-bg-primary';
 
             return `

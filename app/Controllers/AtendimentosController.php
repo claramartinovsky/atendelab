@@ -17,7 +17,6 @@ class AtendimentosController
         echo json_encode($dados, JSON_UNESCAPED_UNICODE);
     }
 
-    // Retorna o ID do usuário logado na sessão.
     private function usuarioResponsavel(): int
     {
         if (isset($_SESSION['usuario']['id'])) {
@@ -40,14 +39,14 @@ class AtendimentosController
                 a.data_atendimento,
                 a.horario_atendimento,
                 a.descricao,
-                a.status
+                a.status,
+                a.observacao_final,
+                a.criado_em,
+                a.atualizado_em
             FROM atendimentos a
-            LEFT JOIN pessoas p
-                ON p.id = a.pessoa_id
-            LEFT JOIN tipos_atendimentos t
-                ON t.id = a.tipo_atendimento_id
-            LEFT JOIN usuarios u
-                ON u.id = a.usuario_id
+            LEFT JOIN pessoas p ON p.id = a.pessoa_id
+            LEFT JOIN tipos_atendimentos t ON t.id = a.tipo_atendimento_id
+            LEFT JOIN usuarios u ON u.id = a.usuario_id
             ORDER BY a.id DESC"
         );
 
@@ -75,19 +74,18 @@ class AtendimentosController
                 a.data_atendimento,
                 a.horario_atendimento,
                 a.descricao,
-                a.status
+                a.status,
+                a.observacao_final,
+                a.criado_em,
+                a.atualizado_em
             FROM atendimentos a
-            LEFT JOIN pessoas p
-                ON p.id = a.pessoa_id
-            LEFT JOIN tipos_atendimentos t
-                ON t.id = a.tipo_atendimento_id
-            LEFT JOIN usuarios u
-                ON u.id = a.usuario_id
+            LEFT JOIN pessoas p ON p.id = a.pessoa_id
+            LEFT JOIN tipos_atendimentos t ON t.id = a.tipo_atendimento_id
+            LEFT JOIN usuarios u ON u.id = a.usuario_id
             WHERE a.id = :id"
         );
 
         $stmt->execute(['id' => $id]);
-
         $atendimento = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$atendimento) {
@@ -100,13 +98,12 @@ class AtendimentosController
 
     public function criar(): void
     {
-        $pessoaId             = filter_var($_POST['pessoa_id']             ?? null, FILTER_VALIDATE_INT);
-        $tipoAtendimentoId    = filter_var($_POST['tipo_atendimento_id']   ?? null, FILTER_VALIDATE_INT);
-        $descricao            = trim($_POST['descricao']                   ?? '');
-        $dataAtendimento      = trim($_POST['data_atendimento']            ?? '');
-        $horarioAtendimento   = trim($_POST['horario_atendimento']         ?? '');
+        $pessoaId           = filter_var($_POST['pessoa_id']           ?? null, FILTER_VALIDATE_INT);
+        $tipoAtendimentoId  = filter_var($_POST['tipo_atendimento_id'] ?? null, FILTER_VALIDATE_INT);
+        $descricao          = trim($_POST['descricao']                 ?? '');
+        $dataAtendimento    = trim($_POST['data_atendimento']          ?? '');
+        $horarioAtendimento = trim($_POST['horario_atendimento']       ?? '');
 
-        // Responsável sempre vem da sessão.
         $usuarioId = $this->usuarioResponsavel();
 
         if (!$pessoaId || !$tipoAtendimentoId || $descricao === '' || $dataAtendimento === '') {
@@ -133,7 +130,7 @@ class AtendimentosController
                 'horario_atendimento' => $horarioAtendimento,
             ]);
 
-            $this->json(['mensagem' => 'Atendimento registrado com sucesso.'], 201);
+            $this->json(['mensagem' => 'Atendimento registrado com sucesso.', 'id' => $this->pdo->lastInsertId()], 201);
 
         } catch (PDOException $e) {
             $this->json(['erro' => 'Não foi possível registrar o atendimento.'], 400);
@@ -142,44 +139,46 @@ class AtendimentosController
 
     public function alterarStatus(): void
     {
-        $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
-        $status = $_POST['status'] ?? '';
+        $id              = filter_var($_POST['id']               ?? null, FILTER_VALIDATE_INT);
+        $status          = trim($_POST['status']                 ?? '');
+        $observacaoFinal = trim($_POST['observacao_final']       ?? '');
 
         if (!$id || $status === '') {
             $this->json(['erro' => 'ID e status são obrigatórios.'], 422);
             return;
         }
 
-        if (!in_array($status, ['aberto', 'encerrado'], true)) {
+        if (!in_array($status, ['aberto', 'em_andamento', 'concluido'], true)) {
             $this->json(['erro' => 'Status inválido.'], 422);
             return;
         }
 
-        try {
+        if ($status === 'concluido' && $observacaoFinal === '') {
+            $this->json(['erro' => 'Observação final é obrigatória para concluir o atendimento.'], 422);
+            return;
+        }
 
+        try {
             $stmt = $this->pdo->prepare(
                 "UPDATE atendimentos
-                SET status = :status
-                WHERE id = :id"
+                 SET status = :status,
+                     observacao_final = :observacao_final
+                 WHERE id = :id"
             );
 
             $stmt->execute([
-                'status' => $status,
-                'id' => $id
+                'status'           => $status,
+                'observacao_final' => $observacaoFinal ?: null,
+                'id'               => $id,
             ]);
 
-            $this->json([
-                'mensagem' => 'Status atualizado com sucesso.'
-            ]);
+            $this->json(['mensagem' => 'Status atualizado com sucesso.']);
 
         } catch (PDOException $e) {
-            $this->json([
-                'erro' => 'Não foi possível atualizar o status.'
-            ], 400);
+            $this->json(['erro' => 'Não foi possível atualizar o status.'], 400);
         }
     }
 
-    // Retorna combos de pessoas e tipos ativos para o formulário.
     public function opcoesFormulario(): void
     {
         $pessoas = $this->pdo

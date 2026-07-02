@@ -21,7 +21,7 @@ class UsuariosController
         header('Content-Type: application/json; charset=utf-8');
 
         // Consulta todos os usuários com ordenação decrescente por ID.
-        $sql = "SELECT id, nome, email, perfil, status, criado_em
+        $sql = "SELECT id, nome, email, perfil, status, criado_em, atualizado_em
                 FROM usuarios
                 ORDER BY id DESC";
 
@@ -46,7 +46,7 @@ class UsuariosController
         }
 
         // Consulta parametrizada evita SQL Injection.
-        $sql = "SELECT id, nome, email, perfil, status, criado_em
+        $sql = "SELECT id, nome, email, perfil, status, criado_em, atualizado_em
                 FROM usuarios
                 WHERE id = :id";
 
@@ -75,6 +75,8 @@ class UsuariosController
         $senha = $_POST['senha'] ?? '';
         $perfil = $_POST['perfil'] ?? 'atendente';
         $status = $_POST['status'] ?? 'ativo';
+        $criado_em = $_POST['criado_em'] ?? '';
+        $atualizado_em = $_POST['atualizado_em'] ?? '';
 
         // Regras mínimas de validação de entrada.
         if ($nome === '' || $email === '' || $senha === '') {
@@ -119,6 +121,8 @@ class UsuariosController
             $stmt->bindValue(':senha', $senhaHash);
             $stmt->bindValue(':perfil', $perfil);
             $stmt->bindValue(':status', $status);
+            $stmt->bindValue(':criado_em', $criado_em);
+            $stmt->bindValue(':atualizado_em', $atualizado_em);
 
             $stmt->execute();
 
@@ -146,6 +150,8 @@ class UsuariosController
         $email = trim($_POST['email'] ?? '');
         $perfil = $_POST['perfil'] ?? 'atendente';
         $status = $_POST['status'] ?? 'ativo';
+        $criado_em = $_POST['criado_em'] ?? '';
+        $atualizado_em = $_POST['atualizado_em'] ?? '';
 
         if (!$id || $nome === '' || $email === '') {
             http_response_code(400);
@@ -189,6 +195,8 @@ class UsuariosController
             $stmt->bindValue(':perfil', $perfil);
             $stmt->bindValue(':status', $status);
             $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+            $stmt->bindValue(':criado_em', $criado_em);
+            $stmt->bindValue(':atualizado_em', $atualizado_em);
 
             $stmt->execute();
 

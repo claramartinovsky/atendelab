@@ -10,7 +10,6 @@ class PessoasController
         $this->pdo = $pdo;
     }
 
-    // Método auxiliar para padronizar respostas JSON.
     private function json(array $dados, int $status = 200): void
     {
         http_response_code($status);
@@ -21,6 +20,7 @@ class PessoasController
     public function listar(): void
     {
         $sql = "SELECT id, nome, documento, telefone, email,
+                    curso, periodo, observacoes,
                     status, criado_em, atualizado_em
                 FROM pessoas
                 ORDER BY nome";
@@ -41,6 +41,7 @@ class PessoasController
 
         $stmt = $this->pdo->prepare(
             'SELECT id, nome, documento, telefone, email,
+                    curso, periodo, observacoes,
                     status, criado_em, atualizado_em
              FROM pessoas
              WHERE id = :id'
@@ -62,11 +63,11 @@ class PessoasController
         $documento   = trim($_POST['documento']   ?? '');
         $telefone    = trim($_POST['telefone']    ?? '');
         $email       = trim($_POST['email']       ?? '');
+        $curso       = trim($_POST['curso']       ?? '');
+        $periodo     = trim($_POST['periodo']     ?? '');
+        $observacoes = trim($_POST['observacoes'] ?? '');
         $status      = $_POST['status']           ?? 'ativo';
-        $criado_em      = trim($_POST['criado_em']        ?? '');
-        $atualizado_em  = trim($_POST['atualizado_em']    ?? '');
 
-        // Validações obrigatórias.
         if ($nome === '' || $documento === '' || $email === '') {
             $this->json(['erro' => 'Nome, documento e e-mail são obrigatórios.'], 422);
             return;
@@ -86,18 +87,27 @@ class PessoasController
             $stmt = $this->pdo->prepare(
                 'INSERT INTO pessoas
                  (nome, documento, telefone, email,
-                    status, criado_em, atualizado_em)
+                  curso, periodo, observacoes, status)
                  VALUES
                  (:nome, :documento, :telefone, :email,
-                  :status, :criado_em, :atualizado_em)'
+                  :curso, :periodo, :observacoes, :status)'
             );
 
-            $stmt->execute(compact(
-                'nome', 'documento', 'telefone', 'email', 'status', 
-                'criado_em', 'atualizado_em'
-            ));
+            $stmt->execute([
+                'nome'        => $nome,
+                'documento'   => $documento,
+                'telefone'    => $telefone ?: null,
+                'email'       => $email,
+                'curso'       => $curso ?: null,
+                'periodo'     => $periodo ?: null,
+                'observacoes' => $observacoes ?: null,
+                'status'      => $status,
+            ]);
 
-            $this->json(['mensagem' => 'Pessoa cadastrada com sucesso.'], 201);
+            $this->json([
+                'mensagem' => 'Pessoa cadastrada com sucesso.',
+                'id'       => $this->pdo->lastInsertId(),
+            ], 201);
 
         } catch (PDOException $e) {
             $this->json(['erro' => 'Não foi possível cadastrar a pessoa.'], 400);
@@ -106,17 +116,16 @@ class PessoasController
 
     public function atualizar(): void
     {
-        $id          = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
+        $id          = filter_var($_POST['id']    ?? null, FILTER_VALIDATE_INT);
         $nome        = trim($_POST['nome']        ?? '');
         $documento   = trim($_POST['documento']   ?? '');
         $telefone    = trim($_POST['telefone']    ?? '');
         $email       = trim($_POST['email']       ?? '');
+        $curso       = trim($_POST['curso']       ?? '');
+        $periodo     = trim($_POST['periodo']     ?? '');
+        $observacoes = trim($_POST['observacoes'] ?? '');
         $status      = $_POST['status']           ?? 'ativo';
-        $criado_em      = trim($_POST['criado_em']        ?? '');
-        $atualizado_em  = trim($_POST['atualizado_em']    ?? '');
 
-
-        // Validações obrigatórias.
         if (!$id || $nome === '' || $documento === '' || $email === '') {
             $this->json(['erro' => 'Dados obrigatórios ausentes.'], 422);
             return;
@@ -135,20 +144,28 @@ class PessoasController
         try {
             $stmt = $this->pdo->prepare(
                 'UPDATE pessoas
-                 SET nome = :nome,
-                     documento = :documento,
-                     telefone = :telefone,
-                     email = :email,
-                     status = :status,
-                     criado_em = :criado_em,
-                     atualizado_em = :atualizado_em
+                 SET nome        = :nome,
+                     documento   = :documento,
+                     telefone    = :telefone,
+                     email       = :email,
+                     curso       = :curso,
+                     periodo     = :periodo,
+                     observacoes = :observacoes,
+                     status      = :status
                  WHERE id = :id'
             );
 
-            $stmt->execute(compact(
-                'id', 'nome', 'documento', 'telefone', 'email',
-                 'status', 'criado_em', 'atualizado_em'
-            ));
+            $stmt->execute([
+                'id'          => $id,
+                'nome'        => $nome,
+                'documento'   => $documento,
+                'telefone'    => $telefone ?: null,
+                'email'       => $email,
+                'curso'       => $curso ?: null,
+                'periodo'     => $periodo ?: null,
+                'observacoes' => $observacoes ?: null,
+                'status'      => $status,
+            ]);
 
             $this->json(['mensagem' => 'Pessoa atualizada com sucesso.']);
 
